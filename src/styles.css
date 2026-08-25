@@ -189,10 +189,26 @@
 }
 
 @keyframes pulse-slow {
-  0%, 100% { box-shadow: 0 0 0 0 oklch(0.4 0.084 145.5 / 0.45); }
-  50% { box-shadow: 0 0 0 10px oklch(0.4 0.084 145.5 / 0); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.4 0.084 145.5 / 0.45);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px oklch(0.4 0.084 145.5 / 0);
+  }
 }
 
 @utility animate-pulse-slow {
   animation: pulse-slow 3s ease-in-out infinite;
+}
+
+@utility hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }

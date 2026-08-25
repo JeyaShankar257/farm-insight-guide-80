@@ -10,33 +10,90 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as IrrigationRouteImport } from './routes/irrigation'
+import { Route as PestRouteImport } from './routes/pest'
+import { Route as PricesRouteImport } from './routes/prices'
+import { Route as SoilRouteImport } from './routes/soil'
+import { Route as WeatherRouteImport } from './routes/weather'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IrrigationRoute = IrrigationRouteImport.update({
+  id: '/irrigation',
+  path: '/irrigation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PestRoute = PestRouteImport.update({
+  id: '/pest',
+  path: '/pest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricesRoute = PricesRouteImport.update({
+  id: '/prices',
+  path: '/prices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SoilRoute = SoilRouteImport.update({
+  id: '/soil',
+  path: '/soil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WeatherRoute = WeatherRouteImport.update({
+  id: '/weather',
+  path: '/weather',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/irrigation': typeof IrrigationRoute
+  '/pest': typeof PestRoute
+  '/prices': typeof PricesRoute
+  '/soil': typeof SoilRoute
+  '/weather': typeof WeatherRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/irrigation': typeof IrrigationRoute
+  '/pest': typeof PestRoute
+  '/prices': typeof PricesRoute
+  '/soil': typeof SoilRoute
+  '/weather': typeof WeatherRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/irrigation': typeof IrrigationRoute
+  '/pest': typeof PestRoute
+  '/prices': typeof PricesRoute
+  '/soil': typeof SoilRoute
+  '/weather': typeof WeatherRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/irrigation' | '/pest' | '/prices' | '/soil' | '/weather'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/irrigation' | '/pest' | '/prices' | '/soil' | '/weather'
+  id:
+    | '__root__'
+    | '/'
+    | '/irrigation'
+    | '/pest'
+    | '/prices'
+    | '/soil'
+    | '/weather'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  IrrigationRoute: typeof IrrigationRoute
+  PestRoute: typeof PestRoute
+  PricesRoute: typeof PricesRoute
+  SoilRoute: typeof SoilRoute
+  WeatherRoute: typeof WeatherRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +105,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/irrigation': {
+      id: '/irrigation'
+      path: '/irrigation'
+      fullPath: '/irrigation'
+      preLoaderRoute: typeof IrrigationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pest': {
+      id: '/pest'
+      path: '/pest'
+      fullPath: '/pest'
+      preLoaderRoute: typeof PestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prices': {
+      id: '/prices'
+      path: '/prices'
+      fullPath: '/prices'
+      preLoaderRoute: typeof PricesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/soil': {
+      id: '/soil'
+      path: '/soil'
+      fullPath: '/soil'
+      preLoaderRoute: typeof SoilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/weather': {
+      id: '/weather'
+      path: '/weather'
+      fullPath: '/weather'
+      preLoaderRoute: typeof WeatherRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  IrrigationRoute: IrrigationRoute,
+  PestRoute: PestRoute,
+  PricesRoute: PricesRoute,
+  SoilRoute: SoilRoute,
+  WeatherRoute: WeatherRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
