@@ -47,11 +47,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  return (
-    <DatasetProvider>
-      <FarmWorkspace />
-    </DatasetProvider>
-  );
+  return <FarmWorkspace />;
 }
 
 function FarmWorkspace() {

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Bot, Send, X, Sprout, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { type ChatMessage, sendChatMessage } from "@/lib/gemini";
+import { useDataset } from "@/lib/agri/store";
+import { type ChatMessage, sendChatMessage, createGroundedDatasetContext } from "@/lib/gemini";
 
 type Message = ChatMessage & { id: number };
 
@@ -15,6 +16,7 @@ const WELCOME: Message = {
 };
 
 export function GeminiChat() {
+    const { dataset, analysis } = useDataset();
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([WELCOME]);
     const [input, setInput] = useState("");
@@ -44,11 +46,22 @@ export function GeminiChat() {
         setLoading(true);
 
         try {
-            /* build history excluding the welcome message */
+            if (!dataset || !analysis) {
+                throw new Error("Please upload a farm dataset or load the demo data before asking farm questions.");
+            }
+
+            const groundedContext = createGroundedDatasetContext(
+                dataset.name,
+                analysis.totals,
+                analysis.byField,
+                analysis.byCrop,
+                analysis.anomalies,
+            );
+
             const history: ChatMessage[] = messages
                 .slice(1)
                 .map(({ role, text: t }) => ({ role, text: t }));
-            const reply = await sendChatMessage(history, text);
+            const reply = await sendChatMessage(history, text, groundedContext);
             setMessages((prev) => [
                 ...prev,
                 { id: nextId(), role: "model", text: reply },

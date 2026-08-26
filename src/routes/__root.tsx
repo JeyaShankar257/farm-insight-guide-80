@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { GeminiChat } from "../components/GeminiChat";
 import { AppNav } from "../components/AppNav";
 import { LocationProvider } from "../lib/location";
+import { DatasetProvider } from "../lib/agri/store";
 
 function NotFoundComponent() {
   return (
@@ -122,10 +123,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LocationProvider>
-        <AppNav />
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-        <GeminiChat />
+        <DatasetProvider>
+          <AppNav />
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          <GeminiChat />
+        </DatasetProvider>
       </LocationProvider>
     </QueryClientProvider>
   );

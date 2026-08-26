@@ -1,37 +1,46 @@
 import { GoogleGenAI } from "@google/genai";
+import { buildDatasetGroundingContext, shouldAnswerQuestion } from "./gemini-rules";
 
 const apiKey = import.meta.env["VITE_GEMINI_API_KEY"] as string | undefined;
 
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
-const SYSTEM_PROMPT = `You are AgriInsight AI, a friendly and knowledgeable agricultural assistant embedded in the AgriInsight farm management platform.
+const SYSTEM_PROMPT = `You are AgriInsight AI, a strict farm-data assistant for the AgriInsight platform.
 
-Your expertise covers:
-- Crop cultivation, fertilization, irrigation, and pest/disease management
-- Soil health and improvement strategies
-- Weather impact on farming and seasonal planning
-- Interpreting farm yield data and identifying trends
-- Sustainable and organic farming practices
-- Indian agriculture context (crops like rice, wheat, sugarcane, cotton, vegetables)
-- Market prices, cost optimization, and profit improvement strategies
-
-Guidelines:
-- Keep answers practical, clear, and concise
-- Use bullet points for multi-step advice
-- When referring to quantities (fertilizer, water), give realistic ranges
-- If asked about the user's farm data specifically, acknowledge you don't have direct access but offer general guidance
-- Always be encouraging and supportive to farmers
-
-Respond in the same language the user writes in.`;
+Rules:
+- Answer only agriculture, crop, soil, irrigation, yield, revenue, profit, season, field, farm, and input-related questions.
+- If the user asks about anything outside agriculture or farm operations, refuse politely and say you can only answer farm-data and agriculture questions.
+- Use only the uploaded farm dataset as the factual basis for answers.
+- Do not answer general knowledge questions that are unrelated to the farmer's uploaded records.
+- If data is missing, say what is missing and suggest what the farmer can upload or compare.
+- Keep answers practical, clear, and concise.
+- Use bullet points when multiple steps or comparisons are needed.
+- If the dataset does not support the question, say so clearly.
+- Respond in the same language the user writes in.`;
 
 export type ChatMessage = {
     role: "user" | "model";
     text: string;
 };
 
+export function createGroundedDatasetContext(datasetName?: string, totals?: unknown, byField?: unknown, byCrop?: unknown, anomalies?: unknown) {
+    return buildDatasetGroundingContext({
+        datasetName,
+        totals: totals as any,
+        byField: byField as any,
+        byCrop: byCrop as any,
+        anomalies: anomalies as any,
+    });
+}
+
+export function canAnswerFarmQuestion(userMessage: string, datasetContext: string): boolean {
+    return shouldAnswerQuestion(userMessage, datasetContext);
+}
+
 export async function sendChatMessage(
     history: ChatMessage[],
     userMessage: string,
+    datasetContext?: string,
 ): Promise<string> {
     if (!ai) {
         throw new Error(
@@ -39,8 +48,12 @@ export async function sendChatMessage(
         );
     }
 
+    const groundedContext = datasetContext ?? buildDatasetGroundingContext();
+    if (!canAnswerFarmQuestion(userMessage, groundedContext)) {
+        throw new Error("I can only answer agriculture and uploaded farm-data questions in AgriInsight.");
+    }
+
     try {
-        // Build full conversation contents including history
         const contents = [
             ...history.map((m) => ({
                 role: m.role,
@@ -48,7 +61,7 @@ export async function sendChatMessage(
             })),
             {
                 role: "user" as const,
-                parts: [{ text: userMessage }],
+                parts: [{ text: `Farm-data context:\n${groundedContext}\n\nUser question:\n${userMessage}` }],
             },
         ];
 
@@ -62,7 +75,6 @@ export async function sendChatMessage(
         if (!text) throw new Error("Empty response from Gemini.");
         return text;
     } catch (err: unknown) {
-        // Surface meaningful error messages (e.g. 400 invalid key, 404 model, 429 quota)
         if (err instanceof Error) {
             const msg = err.message;
             if (msg.includes("API_KEY_INVALID") || msg.includes("401") || msg.includes("403")) {
@@ -73,6 +85,9 @@ export async function sendChatMessage(
             }
             if (msg.includes("429")) {
                 throw new Error("Gemini quota exceeded. Please wait a moment and try again.");
+            }
+            if (msg.includes("only answer agriculture and uploaded farm-data questions")) {
+                throw err;
             }
             throw err;
         }
